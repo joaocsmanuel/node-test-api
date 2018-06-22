@@ -1,12 +1,15 @@
-const { ObjectID } = require('mongodb');
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser'); // takes json and convert it into a object
+const { ObjectID } = require('mongodb');
 
 const { mongoose } = require('./db/mongoose');
 const { Idea } = require('./models/idea');
 const { User } = require('./models/user');
 
 const app = express();
+const port = process.env.PORT || 3000;
+
 
 app.use(bodyParser.json());
 
@@ -49,8 +52,46 @@ app.get('/ideas/:id', (req, res) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log('Started on port 3000');
+app.delete('/ideas/:id', (req, res) => {
+  let id = req.params.id;
+
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send();
+  }
+
+  Idea.findByIdAndRemove(id).then((idea) => {
+    if(!idea){
+      return res.status(404).send();
+    }
+
+    res.send(idea);
+  }, (e) => {
+    res.status(400).send()
+  });
+});
+
+app.patch('/ideas/:id', (req, res) => {
+  let id = req.params.id;
+  let body = _.pick(req.body, ['title', 'description']);
+
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send();
+  }
+
+ 
+  Idea.findByIdAndUpdate(id, { $set: body }, { new: true }).then((idea) => {
+    if(!idea){
+      return res.status(404).send();
+    }
+
+    res.send({ idea });
+  }).catch((e) => {
+    res.status(400).send();
+  })
+});
+
+app.listen(port, () => {
+  console.log(`Started up at port ${port}`);
 });
 
 module.exports = { app };
