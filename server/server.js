@@ -10,7 +10,14 @@ const { User } = require('./models/user');
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+app.use(function(req,res,next){
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization, x-auth');
+  res.setHeader('Access-Control-Expose-Headers', 'x-auth');
+  next();
+});
 
 app.post('/ideas', (req, res) => {
   const idea = new Idea({
